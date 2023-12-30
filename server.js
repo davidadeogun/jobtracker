@@ -86,13 +86,31 @@ app.post('/upload', (req, res) => {
 // Route for listing all resumes
 app.get('/resumes', async (req, res) => {
   try {
-    const resumes = await Pdf.find({});
+    let query = {};
+    if (req.query.jobTitle) {
+      query.jobTitle = { $regex: req.query.jobTitle, $options: 'i' };
+    }
+    if (req.query.companyName) {
+      query.companyName = { $regex: req.query.companyName, $options: 'i' };
+    }
+    if (req.query.dateFrom || req.query.dateTo) {
+      query.dateUploaded = {};
+      if (req.query.dateFrom) {
+        query.dateUploaded.$gte = new Date(req.query.dateFrom);
+      }
+      if (req.query.dateTo) {
+        query.dateUploaded.$lte = new Date(req.query.dateTo);
+      }
+    }
+
+    const resumes = await Pdf.find(query);
     res.render('list', { resumes: resumes });
   } catch (error) {
     console.error('Error fetching resumes:', error);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 // Route for downloading a specific resume
 app.get('/download/:id', async (req, res) => {
