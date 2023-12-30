@@ -19,7 +19,14 @@ app.use(express.static('public'));
 // Configure Multer for memory storage
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 100 * 1024 } // 100KB limit
+  limits: { fileSize: 100 * 1024 }, // 100KB limit
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype !== 'application/pdf') {
+      req.fileValidationError = 'Only PDF files are allowed!';
+      return cb(null, false, req.fileValidationError);
+    }
+    cb(null, true);
+  }
 }).single('resume');
 
 
@@ -29,24 +36,51 @@ app.get('/', (req, res) => {
 });
 
 // Route for handling file uploads
-app.post('/upload', upload, async (req, res) => {
-  try {
-    const newPdf = new Pdf({
-      filename: req.file.originalname,
-      contentType: req.file.mimetype,
-      data: req.file.buffer,
-      jobTitle: req.body.jobTitle,
-      companyName: req.body.companyName,
-      companyURL: req.body.companyURL
-    });
+app.post('/upload', (req, res) => {
+  upload(req, res, async function (error) {
+    // Handling file validation errors
+    if (req.fileValidationError) {
+      return res.status(400).send(req.fileValidationError);
+    } 
 
-    await newPdf.save();
-    res.render('success', { filename: req.file.originalname });
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    res.status(500).send('Error uploading file.');
-  }
+    // Handling Multer errors
+    else if (error instanceof multer.MulterError) {
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).send('File too large. Maximum size is 100KB.');
+      }
+      return res.status(500).send(error.message);
+    } 
+
+    // Handling other unknown errors
+    else if (error) {
+      return res.status(500).send(error.message);
+    }
+
+    // If no file is uploaded
+    if (!req.file) {
+      return res.status(400).send('Please upload a file.');
+    }
+
+    // If file upload is successful
+    try {
+      const newPdf = new Pdf({
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+        data: req.file.buffer,
+        jobTitle: req.body.jobTitle,
+        companyName: req.body.companyName,
+        companyURL: req.body.companyURL
+      });
+
+      await newPdf.save();
+      res.render('success', { filename: req.file.originalname });
+    } catch (error) {
+      console.error('Error saving file:', error);
+      res.status(500).send('Error saving file.');
+    }
+  });
 });
+
 
 
 // Route for listing all resumes
