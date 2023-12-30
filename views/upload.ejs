@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Application Tracker</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Job Application Tracker</h1>
+    <!-- views/upload.ejs -->
+<form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="text" name="jobTitle" placeholder="Job Title" required />
+    <input type="text" name="companyName" placeholder="Company Name" required />
+    <input type="url" name="companyURL" placeholder="Company URL" required />
+    <input type="file" name="resume" required />
+    <button type="submit">Upload Resume</button>
+</form>
+
+    </form>
+    <a href="/resumes">View Applications</a> <!-- Link to view resumes -->
+</body>
+</html>

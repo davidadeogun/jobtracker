@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resume List</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>Jobs Applied For</h1>
+    <ul>
+        <% resumes.forEach(function(resume) { %>
+            <li>
+                <%= resume.filename %> - 
+                Position Applied For: <%= resume.jobTitle %>,
+                Company Name: <%= resume.companyName %>,
+                <a href="<%= resume.companyURL %>">Job Posting Website</a>,
+                <a href="/download/<%= resume._id %>">Download Resume</a>
+                <br>
+                Uploaded On: <%= new Date(resume.dateUploaded).toLocaleDateString() %> at <%= new Date(resume.dateUploaded).toLocaleTimeString() %>
+            </li>
+        <% }) %>
+    </ul>
+    <a href="/">Back to Home</a> <!-- Link to go back to the index page -->
+</body>
+</html>
